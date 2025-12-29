@@ -130,7 +130,7 @@ Example configuration:
 ```nginx
 server {
     listen 443 ssl;
-    server_name ;  # Tailscale IP of your WSL
+    server_name <TAILSCALE-IP>;  # Tailscale IP of your WSL
 
     ssl_certificate     /etc/ssl/localca/server.crt;
     ssl_certificate_key /etc/ssl/localca/server.key;
@@ -144,6 +144,12 @@ server {
         proxy_set_header X-Forwarded-Proto https;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Real-IP $remote_addr;
+
+	# WebSocket support
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400s;
     }
 }
 ```
@@ -244,11 +250,11 @@ https://<TAILSCALE-IP>/
 sudo chmod 600 /etc/oauth2-proxy.cfg
 ```
 
-- Enable HTTP → HTTPS redirect in Nginx:
+- Enable HTTP → HTTPS redirect in Nginx (add to /etc/nginx/sites-available/code-server):
 ```nginx
 server {
     listen 80;
-    server_name ;
+    server_name default_name; # So that settings as server setting above 
     return 301 https://$host$request_uri;
 }
 ```
